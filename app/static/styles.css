@@ -1,0 +1,517 @@
+/* ChromaGrade Pro — Light Mode Glassmorphic Design System */
+/* Clean, Precision Studio Aesthetic with Motion & Parallax */
+
+:root {
+  --bg-floor: #f8fafc;
+  --bg-canvas: #f1f5f9;
+  --surface-base: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.88);
+  --surface-glass-elevated: rgba(255, 255, 255, 0.96);
+  --surface-hover: #f1f5f9;
+  --border-specular: rgba(226, 232, 240, 0.95);
+  --border-specular-light: rgba(203, 213, 225, 0.9);
+  --border-focus: #f59e0b;
+
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 32px -4px rgba(15, 23, 42, 0.1), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 20px 48px -8px rgba(15, 23, 42, 0.14), 0 8px 16px -4px rgba(15, 23, 42, 0.06);
+
+  --primary-amber: #d97706;
+  --primary-amber-bright: #f59e0b;
+  --primary-amber-glow: rgba(245, 158, 11, 0.35);
+  --primary-amber-soft: rgba(245, 158, 11, 0.12);
+
+  --secondary-cyan: #0284c7;
+  --secondary-cyan-bright: #06b6d4;
+  --secondary-cyan-glow: rgba(6, 182, 212, 0.3);
+  --secondary-cyan-soft: rgba(6, 182, 212, 0.12);
+
+  --text-main: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 9999px;
+
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-floor);
+  color: var(--text-main);
+  font-family: var(--font-inter);
+  line-height: 1.5;
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================================
+   PARALLAX BACKGROUND ENGINE (LIGHT MODE)
+   ========================================================================= */
+.parallax-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 0%, #ffffff 0%, #f8fafc 60%, #f1f5f9 100%);
+}
+
+.parallax-grid {
+  position: absolute;
+  inset: -10%;
+  width: 120%;
+  height: 120%;
+  background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1.25px, transparent 1.25px);
+  background-size: 32px 32px;
+  opacity: 0.7;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.parallax-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  opacity: 0.6;
+  will-change: transform;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.parallax-orb-amber {
+  top: -5%;
+  left: 10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, rgba(251, 191, 36, 0.08) 50%, transparent 70%);
+}
+
+.parallax-orb-cyan {
+  bottom: 5%;
+  right: 10%;
+  width: 650px;
+  height: 650px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(56, 189, 248, 0.06) 50%, transparent 70%);
+}
+
+/* =========================================================================
+   3D CARD PARALLAX TILT & SPECULAR GLARE
+   ========================================================================= */
+.parallax-tilt-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+  position: relative;
+}
+
+.parallax-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255, 255, 255, 0.7) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  mix-blend-mode: overlay;
+  z-index: 10;
+}
+
+.parallax-tilt-card:hover .parallax-glare {
+  opacity: 1;
+}
+
+/* =========================================================================
+   GLASSMORPHIC CARDS & PANELS (LIGHT MODE)
+   ========================================================================= */
+.glass-panel {
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--border-specular);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-panel:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-specular-light);
+}
+
+.glass-panel-elevated {
+  background: var(--surface-glass-elevated);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-specular-light);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+/* =========================================================================
+   TRANSITION MOTION ANIMATIONS (Framer-Motion style)
+   ========================================================================= */
+.page-view {
+  display: none;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.page-view.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Button & interactive spring */
+.interactive-spring {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.interactive-spring:hover {
+  transform: translateY(-2px);
+}
+
+.interactive-spring:active {
+  transform: scale(0.97) translateY(0);
+}
+
+/* Primary Amber Action Button */
+.btn-amber-action {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: 1px solid #b45309;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35), 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-amber-action:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #ea580c 100%);
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.45), 0 2px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.btn-amber-action:active {
+  transform: scale(0.98);
+}
+
+/* Cyan Action Button */
+.btn-cyan-action {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  border: 1px solid #0369a1;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3), 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-cyan-action:hover {
+  background: linear-gradient(135deg, #38bdf8 0%, #0369a1 100%);
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background: #ffffff;
+  border: 1px solid var(--border-specular-light);
+  color: var(--text-main);
+  box-shadow: var(--shadow-xs);
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Shimmer Loading Beam */
+@keyframes beamPulse {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.beam-pulse {
+  animation: beamPulse 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================================
+   BEFORE / AFTER COMPARISON SLIDER
+   ========================================================================= */
+.compare-container {
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  cursor: ew-resize;
+  border-radius: var(--radius-lg);
+  background: #0f172a;
+  box-shadow: var(--shadow-xl);
+}
+
+.compare-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow: hidden;
+  border-right: 2px solid #ffffff;
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+.compare-handle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 38px;
+  height: 38px;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(255, 255, 255, 0.8);
+  cursor: ew-resize;
+  z-index: 20;
+  pointer-events: none;
+  transition: transform 0.15s ease;
+}
+
+.compare-container:hover .compare-handle {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* =========================================================================
+   DARKROOM PRECISION SLIDERS (LIGHT MODE)
+   ========================================================================= */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2.5px solid var(--primary-amber);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18), 0 0 0 2px rgba(245, 158, 11, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.35), 0 0 0 3px rgba(245, 158, 11, 0.3);
+}
+
+input[type="range"].accent-cyan::-webkit-slider-thumb {
+  border-color: var(--secondary-cyan);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18), 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+input[type="range"].accent-cyan::-webkit-slider-thumb:hover {
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35), 0 0 0 3px rgba(2, 132, 199, 0.3);
+}
+
+/* =========================================================================
+   PRESET CHIPS & FILM STOCK BADGES
+   ========================================================================= */
+.preset-chip {
+  background: #ffffff;
+  border: 1px solid var(--border-specular);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-body);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-xs);
+  transition: all 0.2s ease;
+}
+
+.preset-chip:hover {
+  background: #ffffff;
+  border-color: var(--primary-amber-bright);
+  color: var(--text-main);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.preset-chip.active {
+  background: var(--primary-amber-soft);
+  border-color: var(--primary-amber);
+  color: var(--primary-amber);
+  font-weight: 600;
+  box-shadow: 0 0 10px var(--primary-amber-glow);
+}
+
+/* Preset Gallery Card */
+.preset-gallery-card {
+  background: var(--surface-glass);
+  border: 1px solid var(--border-specular);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.preset-gallery-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary-amber-bright);
+  box-shadow: var(--shadow-xl), 0 0 20px var(--primary-amber-glow);
+}
+
+/* =========================================================================
+   COLOR HARMONY PALETTE CHIPS
+   ========================================================================= */
+.palette-chip {
+  border-radius: var(--radius-md);
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid var(--border-specular);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+
+.palette-chip:hover {
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.palette-swatch-box {
+  width: 100%;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 6px;
+}
+
+/* =========================================================================
+   3-WAY COLOR BALANCE WHEEL SCOPES
+   ========================================================================= */
+.color-wheel-circle {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f8fafc 0%, #e2e8f0 70%, #cbd5e1 100%);
+  border: 1.5px solid #cbd5e1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.color-wheel-crosshair {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background: rgba(100, 116, 139, 0.3);
+}
+
+.color-wheel-crosshair-v {
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  background: rgba(100, 116, 139, 0.3);
+}
+
+.color-wheel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary-amber);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  position: absolute;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+/* =========================================================================
+   SYNTAX CODE BLOCKS & TELEMETRY MONOSPACE
+   ========================================================================= */
+.code-block {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  color: #f1f5f9;
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+.badge-mono {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: var(--text-body);
+}
+
+/* =========================================================================
+   CUSTOM SCROLLBAR
+   ========================================================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

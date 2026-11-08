@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChromaGrade Pro — AI Color Grade Transfer</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d97706'><path d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V18a1 1 0 0 1-2 0v-1.07A7 7 0 0 1 5.07 11H4a1 1 0 0 1 0-2h1.07A7 7 0 0 1 11 3.07V2a1 1 0 0 1 2 0v1.07A7 7 0 0 1 18.93 9H20a1 1 0 0 1 0 2h-1.07A7 7 0 0 1 13 16.93z'/></svg>" />
+
+  <!-- Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="bg-[#F8FAFC] text-[#0F172A] min-h-screen flex flex-col font-sans relative select-none">
+
+  <!-- Interactive Parallax Background Canvas -->
+  <div class="parallax-canvas" id="parallaxCanvas">
+    <div class="parallax-grid" id="parallaxGrid"></div>
+    <div class="parallax-orb parallax-orb-amber" id="parallaxOrbAmber"></div>
+    <div class="parallax-orb parallax-orb-cyan" id="parallaxOrbCyan"></div>
+  </div>
+
+  <!-- STICKY LIGHT GLASS HEADER -->
+  <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200/90 px-4 lg:px-8 py-3 shadow-xs">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+
+      <!-- Brand Mark -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20 text-white">
+          <i data-lucide="aperture" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <span class="text-base font-bold tracking-tight text-slate-900">
+            ChromaGrade <span class="text-amber-600 font-extrabold">PRO</span>
+          </span>
+          <p class="text-[11px] text-slate-500">AI Color Grade Transfer &amp; Palette Harmonization</p>
+        </div>
+      </div>
+
+      <!-- Right Controls -->
+      <div class="flex items-center gap-3">
+        <button id="resetWorkspaceBtn" title="Reset all grading sliders to defaults" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 text-slate-700">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-slate-500"></i>
+          <span>Reset Defaults</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 relative z-10">
+
+    <!-- Studio Grid: Controls (5 cols) & Monitor (7 cols) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT COLUMN: Dual Uploads & Darkroom Sliders -->
+      <div class="lg:col-span-5 space-y-5">
+
+        <!-- 1. Source Image Card -->
+        <div class="glass-panel p-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <h2 class="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+              <i data-lucide="image" class="w-4 h-4 text-amber-500"></i>
+              1. Input Image (Source)
+            </h2>
+            <span class="badge-mono text-[9px] text-slate-600">Content Preserved</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mb-2.5">Your personal photo whose subject, geometry, and textures remain intact.</p>
+
+          <!-- Dropzone -->
+          <div id="sourceDropzone" class="relative border-2 border-dashed border-slate-300 hover:border-amber-400 bg-slate-50/70 hover:bg-amber-50/30 rounded-xl p-3 text-center cursor-pointer transition-all">
+            <input type="file" id="sourceFileInput" accept="image/*" class="hidden" />
+            <div id="sourcePlaceholder" class="flex flex-col items-center justify-center py-4 gap-1.5">
+              <div class="p-2.5 bg-amber-100 text-amber-600 rounded-xl border border-amber-200">
+                <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+              </div>
+              <p class="text-xs font-medium text-slate-700">Drop your photo here or <span class="text-amber-600 underline font-semibold">browse</span></p>
+              <p class="text-[10px] text-slate-400">Supports JPEG, PNG, WebP, Grayscale, Phone Photos</p>
+            </div>
+            <div id="sourcePreviewBox" class="hidden relative group">
+              <img id="sourcePreviewImg" class="w-full h-40 object-cover rounded-lg border border-slate-200" />
+              <button id="removeSourceBtn" title="Remove image" class="absolute top-2 right-2 p-1.5 bg-slate-900/80 hover:bg-red-600 text-white rounded-lg transition shadow-md">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Demo Samples -->
+          <div class="mt-2.5">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] text-slate-500 font-medium">Or test with demo photo:</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2" id="sampleInputsGrid">
+              <button class="sample-input-btn relative group rounded-lg overflow-hidden border border-slate-200 hover:border-amber-500 transition shadow-xs" data-url="/static/demo/color_input1.jpg">
+                <img src="/static/demo/color_input1.jpg" alt="Portrait" class="w-full h-11 object-cover group-hover:scale-105 transition" />
+                <span class="absolute bottom-0 inset-x-0 bg-slate-900/75 text-[9px] py-0.5 text-center text-slate-200">Portrait</span>
+              </button>
+              <button class="sample-input-btn relative group rounded-lg overflow-hidden border border-slate-200 hover:border-amber-500 transition shadow-xs" data-url="/static/demo/color_input2.jpg">
+                <img src="/static/demo/color_input2.jpg" alt="Urban" class="w-full h-11 object-cover group-hover:scale-105 transition" />
+                <span class="absolute bottom-0 inset-x-0 bg-slate-900/75 text-[9px] py-0.5 text-center text-slate-200">Urban</span>
+              </button>
+              <button class="sample-input-btn relative group rounded-lg overflow-hidden border border-slate-200 hover:border-amber-500 transition shadow-xs" data-url="/static/demo/color_input3.jpg">
+                <img src="/static/demo/color_input3.jpg" alt="Model" class="w-full h-11 object-cover group-hover:scale-105 transition" />
+                <span class="absolute bottom-0 inset-x-0 bg-slate-900/75 text-[9px] py-0.5 text-center text-slate-200">Model</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Reference Image Card -->
+        <div class="glass-panel p-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <h2 class="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+              <i data-lucide="palette" class="w-4 h-4 text-cyan-600"></i>
+              2. Reference Style (Palette &amp; Mood)
+            </h2>
+            <span class="badge-mono text-[9px] text-cyan-700 bg-cyan-50 border-cyan-200">Target Aesthetic</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mb-2.5">The photograph whose color grading, tones, and film mood will be extracted.</p>
+
+          <!-- Dropzone -->
+          <div id="refDropzone" class="relative border-2 border-dashed border-slate-300 hover:border-cyan-400 bg-slate-50/70 hover:bg-cyan-50/30 rounded-xl p-3 text-center cursor-pointer transition-all">
+            <input type="file" id="refFileInput" accept="image/*" class="hidden" />
+            <div id="refPlaceholder" class="flex flex-col items-center justify-center py-4 gap-1.5">
+              <div class="p-2.5 bg-cyan-100 text-cyan-600 rounded-xl border border-cyan-200">
+                <i data-lucide="image-plus" class="w-5 h-5"></i>
+              </div>
+              <p class="text-xs font-medium text-slate-700">Drop reference photo here or <span class="text-cyan-600 underline font-semibold">browse</span></p>
+              <p class="text-[10px] text-slate-400">Film still, cinematic shot, editorial</p>
+            </div>
+            <div id="refPreviewBox" class="hidden relative group">
+              <img id="refPreviewImg" class="w-full h-40 object-cover rounded-lg border border-slate-200" />
+              <button id="removeRefBtn" title="Remove reference" class="absolute top-2 right-2 p-1.5 bg-slate-900/80 hover:bg-red-600 text-white rounded-lg transition shadow-md">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Demo References -->
+          <div class="mt-2.5">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] text-slate-500 font-medium">Or pick a demo style:</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2" id="sampleRefsGrid">
+              <button class="sample-ref-btn relative group rounded-lg overflow-hidden border border-slate-200 hover:border-cyan-500 transition shadow-xs" data-url="/static/demo/color_reference_1.jpg">
+                <img src="/static/demo/color_reference_1.jpg" alt="Warm Autumn" class="w-full h-11 object-cover group-hover:scale-105 transition" />
+                <span class="absolute bottom-0 inset-x-0 bg-slate-900/75 text-[9px] py-0.5 text-center text-slate-200">Warm Autumn</span>
+              </button>
+              <button class="sample-ref-btn relative group rounded-lg overflow-hidden border border-slate-200 hover:border-cyan-500 transition shadow-xs" data-url="/static/demo/color_reference_2.jpg">
+                <img src="/static/demo/color_reference_2.jpg" alt="Sunset Gold" class="w-full h-11 object-cover group-hover:scale-105 transition" />
+                <span class="absolute bottom-0 inset-x-0 bg-slate-900/75 text-[9px] py-0.5 text-center text-slate-200">Sunset Gold</span>
+              </button>
+              <button class="sample-ref-btn relative group rounded-lg overflow-hidden border border-slate-200 hover:border-cyan-500 transition shadow-xs" data-url="/static/demo/color_reference_3.jpg">
+                <img src="/static/demo/color_reference_3.jpg" alt="Cyber Teal" class="w-full h-11 object-cover group-hover:scale-105 transition" />
+                <span class="absolute bottom-0 inset-x-0 bg-slate-900/75 text-[9px] py-0.5 text-center text-slate-200">Cyber Teal</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Precision Hardware Darkroom Sliders -->
+        <div class="glass-panel p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-amber-500"></i>
+              Grading Controls
+            </h3>
+            <span id="activeAlgoBadge" class="badge-mono text-[10px] text-amber-700 bg-amber-50 border-amber-200">Reinhard LAB</span>
+          </div>
+
+          <div class="space-y-3.5 text-xs">
+            <!-- Engine Selector -->
+            <div>
+              <label for="algorithmSelect" class="block text-[11px] font-medium text-slate-700 mb-1">Color Transfer Engine</label>
+              <select id="algorithmSelect" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-amber-500 focus:outline-none">
+                <option value="reinhard" selected>Reinhard Natural (Perceptual CIE L*a*b*) — Recommended</option>
+                <option value="cdf">Cinematic CDF (Deep Non-linear Contrast &amp; Shadows)</option>
+                <option value="split_tone">Split-Tone Film (Shadow Teal &amp; Highlight Amber)</option>
+                <option value="bilateral">Edge-Preserved Bilateral (High Texture Fidelity)</option>
+              </select>
+            </div>
+
+            <!-- Strength Slider -->
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-[11px] font-medium text-slate-700">Grade Strength</span>
+                <span id="strengthValue" class="font-mono text-amber-600 font-semibold text-[11px]">100%</span>
+              </div>
+              <input type="range" id="strengthSlider" min="0" max="100" value="100" />
+            </div>
+
+            <!-- 2-Column: Saturation & Kelvin -->
+            <div class="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-[11px] text-slate-600">Saturation</span>
+                  <span id="satValue" class="font-mono text-slate-500 text-[11px]">0%</span>
+                </div>
+                <input type="range" id="satSlider" min="-50" max="50" value="0" />
+              </div>
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-[11px] text-slate-600">Warmth / Kelvin</span>
+                  <span id="tempValue" class="font-mono text-slate-500 text-[11px]">0</span>
+                </div>
+                <input type="range" id="tempSlider" min="-50" max="50" value="0" />
+              </div>
+            </div>
+
+            <!-- 2-Column: Contrast & Brightness -->
+            <div class="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-[11px] text-slate-600">Contrast</span>
+                  <span id="contrastValue" class="font-mono text-slate-500 text-[11px]">0</span>
+                </div>
+                <input type="range" id="contrastSlider" min="-50" max="50" value="0" />
+              </div>
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-[11px] text-slate-600">Brightness</span>
+                  <span id="brightnessValue" class="font-mono text-slate-500 text-[11px]">0</span>
+                </div>
+                <input type="range" id="brightnessSlider" min="-50" max="50" value="0" />
+              </div>
+            </div>
+
+            <!-- Lens Vignette -->
+            <div class="pt-1 border-t border-slate-100">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-[11px] text-slate-600">Lens Vignette Falloff</span>
+                <span id="vignetteValue" class="font-mono text-slate-500 text-[11px]">0%</span>
+              </div>
+              <input type="range" id="vignetteSlider" min="0" max="100" value="0" class="accent-cyan" />
+            </div>
+
+            <!-- Luminance Toggle -->
+            <div class="pt-1 border-t border-slate-100">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="preserveLumCheckbox" class="rounded border-slate-300 text-amber-600 focus:ring-0 w-3.5 h-3.5" />
+                <span class="text-[11px] text-slate-700">Preserve original image luminance &amp; exposure</span>
+              </label>
+            </div>
+
+          </div>
+
+          <!-- Big Master Apply Button -->
+          <button id="applyGradeBtn" class="btn-amber-action mt-4 w-full py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer">
+            <i data-lucide="wand-2" class="w-4 h-4"></i>
+            <span id="btnText">APPLY COLOR GRADE</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Viewport Monitor & Scopes (STATIC - NO TILT ANIMATION) -->
+      <div class="lg:col-span-7 space-y-5">
+
+        <!-- Static Viewport Monitor Card -->
+        <div class="glass-panel-elevated overflow-hidden" id="monitorTiltCard">
+
+          <!-- Monitor Header Bar -->
+          <div class="p-3.5 border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-3 bg-slate-50/70">
+            <div class="flex items-center gap-2">
+              <div class="p-1.5 bg-amber-100 text-amber-700 rounded-lg border border-amber-200 shadow-xs">
+                <i data-lucide="monitor" class="w-3.5 h-3.5"></i>
+              </div>
+              <h2 class="text-xs font-semibold text-slate-900">Grading Monitor</h2>
+              <span id="timingBadge" class="hidden badge-mono text-[10px] text-emerald-700 bg-emerald-50 border-emerald-200"></span>
+            </div>
+
+            <!-- View Modes Switcher -->
+            <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+              <button class="view-mode-btn px-2.5 py-1 rounded-md text-[11px] font-semibold text-amber-700 bg-white shadow-xs transition" data-mode="split">
+                <i data-lucide="columns-2" class="w-3 h-3 inline mr-1"></i> Split Slider
+              </button>
+              <button class="view-mode-btn px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-600 hover:text-slate-900 transition" data-mode="side">
+                <i data-lucide="grid-2x2" class="w-3 h-3 inline mr-1"></i> Side by Side
+              </button>
+              <button class="view-mode-btn px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-600 hover:text-slate-900 transition" data-mode="result">
+                <i data-lucide="maximize-2" class="w-3 h-3 inline mr-1"></i> Graded Only
+              </button>
+            </div>
+          </div>
+
+          <!-- Viewport Canvas Area (Studio Backdrop for Accurate Viewing) -->
+          <div class="relative bg-slate-950 min-h-[420px] flex items-center justify-center p-3 overflow-hidden" id="displayArea">
+
+            <!-- Loading State with Luminous Beam -->
+            <div id="loadingOverlay" class="hidden absolute inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center animate-spin">
+                <i data-lucide="loader-2" class="w-5 h-5"></i>
+              </div>
+              <p class="text-slate-200 text-xs font-medium tracking-wide">Processing Color Grade Transfer...</p>
+              <div class="w-56 h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
+                <div class="beam-pulse absolute inset-0 bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="flex flex-col items-center justify-center text-center py-20 px-4">
+              <div class="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 flex items-center justify-center mb-3">
+                <i data-lucide="sparkles" class="w-6 h-6 text-amber-500/60"></i>
+              </div>
+              <h3 class="text-sm font-semibold text-slate-200">No color grade generated yet</h3>
+              <p class="text-xs text-slate-400 mt-1 max-w-sm">Select input and reference images, then click "Apply Color Grade" to transfer the mood.</p>
+            </div>
+
+            <!-- Mode 1: Split Slider View -->
+            <div id="splitViewContainer" class="hidden compare-container w-full max-w-2xl shadow-2xl relative">
+              <img id="gradedImgSplit" class="w-full h-auto block object-contain max-h-[520px]" />
+              <div class="absolute top-3 right-3 bg-amber-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm backdrop-blur-md">GRADED</div>
+
+              <div id="compareOverlay" class="compare-overlay" style="width: 50%;">
+                <img id="sourceImgSplit" class="h-auto block object-contain max-h-[520px]" />
+                <div class="absolute top-3 left-3 bg-slate-950/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded backdrop-blur-md">ORIGINAL</div>
+              </div>
+
+              <div id="compareHandle" class="compare-handle" style="left: 50%;">
+                <i data-lucide="chevrons-left-right" class="w-4 h-4"></i>
+              </div>
+            </div>
+
+            <!-- Mode 2: Side by Side View -->
+            <div id="sideBySideContainer" class="hidden w-full grid grid-cols-2 gap-3 max-w-3xl">
+              <div class="relative rounded-lg overflow-hidden bg-slate-900 border border-slate-800">
+                <span class="absolute top-2 left-2 bg-slate-950/80 text-white text-[9px] font-semibold px-2 py-0.5 rounded z-10">ORIGINAL</span>
+                <img id="sourceImgSide" class="w-full h-auto object-contain max-h-[440px]" />
+              </div>
+              <div class="relative rounded-lg overflow-hidden bg-slate-900 border border-slate-800">
+                <span class="absolute top-2 right-2 bg-amber-500 text-slate-950 text-[9px] font-bold px-2 py-0.5 rounded z-10">GRADED</span>
+                <img id="gradedImgSide" class="w-full h-auto object-contain max-h-[440px]" />
+              </div>
+            </div>
+
+            <!-- Mode 3: Graded Only View -->
+            <div id="gradedOnlyContainer" class="hidden w-full max-w-2xl rounded-lg overflow-hidden shadow-2xl relative">
+              <img id="gradedImgOnly" class="w-full h-auto object-contain max-h-[520px] mx-auto block" />
+            </div>
+
+          </div>
+
+          <!-- Viewport Action Toolbar (Light Mode) -->
+          <div id="resultToolbar" class="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <button id="downloadImgBtn" disabled class="btn-amber-action px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Download Image
+              </button>
+              <button id="downloadLutBtn" disabled class="btn-secondary px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700">
+                <i data-lucide="film" class="w-3.5 h-3.5 text-amber-500"></i> Export 3D LUT (.CUBE)
+              </button>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button id="copyImgBtn" disabled class="btn-secondary px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 text-slate-700 disabled:opacity-40" title="Copy graded image to clipboard">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Extracted Palette Card -->
+        <div id="paletteCard" class="hidden glass-panel p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="swatch-book" class="w-3.5 h-3.5 text-amber-500"></i>
+              Extracted Reference Palette
+            </h3>
+            <span class="text-[11px] text-slate-500">Click any swatch to copy HEX</span>
+          </div>
+          <div class="grid grid-cols-5 gap-2.5" id="paletteSwatches"></div>
+        </div>
+
+        <!-- 3-Way Color Balance Wheel Scopes -->
+        <div class="glass-panel p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="circle-dot" class="w-3.5 h-3.5 text-cyan-600"></i>
+              3-Way Color Balance Scopes
+            </h3>
+            <span class="badge-mono text-[9px] text-slate-600">Shadows &bull; Midtones &bull; Highlights</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <!-- Shadows Wheel -->
+            <div class="flex flex-col items-center">
+              <div class="color-wheel-circle mb-2" id="wheelShadows">
+                <div class="color-wheel-crosshair"></div>
+                <div class="color-wheel-crosshair-v"></div>
+                <div class="color-wheel-dot bg-cyan-600" id="dotShadows" style="left: 46%; top: 56%;"></div>
+              </div>
+              <span class="text-[11px] font-semibold text-slate-800">Shadows (Lift)</span>
+              <span class="font-mono text-[10px] text-slate-500" id="valShadows">Cold Teal</span>
+            </div>
+
+            <!-- Midtones Wheel -->
+            <div class="flex flex-col items-center">
+              <div class="color-wheel-circle mb-2" id="wheelMidtones">
+                <div class="color-wheel-crosshair"></div>
+                <div class="color-wheel-crosshair-v"></div>
+                <div class="color-wheel-dot bg-amber-500" id="dotMidtones" style="left: 50%; top: 48%;"></div>
+              </div>
+              <span class="text-[11px] font-semibold text-slate-800">Midtones (Gamma)</span>
+              <span class="font-mono text-[10px] text-slate-500" id="valMidtones">Neutral Warm</span>
+            </div>
+
+            <!-- Highlights Wheel -->
+            <div class="flex flex-col items-center">
+              <div class="color-wheel-circle mb-2" id="wheelHighlights">
+                <div class="color-wheel-crosshair"></div>
+                <div class="color-wheel-crosshair-v"></div>
+                <div class="color-wheel-dot bg-orange-500" id="dotHighlights" style="left: 54%; top: 44%;"></div>
+              </div>
+              <span class="text-[11px] font-semibold text-slate-800">Highlights (Gain)</span>
+              <span class="font-mono text-[10px] text-slate-500" id="valHighlights">Tungsten Gold</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Strip -->
+        <div id="historySection" class="hidden glass-panel p-4">
+          <h4 class="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+            <i data-lucide="history" class="w-3.5 h-3.5 text-slate-500"></i>
+            Session Generations
+          </h4>
+          <div id="historyThumbnails" class="flex items-center gap-2 overflow-x-auto pb-1"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2.5 bg-slate-900 text-white border border-slate-700">
+      <i id="toastIcon" data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+      <span id="toastMsg">Notification</span>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
